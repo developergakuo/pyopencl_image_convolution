@@ -276,9 +276,10 @@ srcConstant ='''
 # SEECTION:  GPU SETUP
 
 # Get platforms, both CPU and GPU
-print ("here plat")
+print("here plat")
 plat = cl.get_platforms()
-print ("here got  ctx1")
+print("here got  ctx1")
+time.sleep(5)
 platform = plat[platform].get_devices()
 ctx = cl.Context(platform)
 
