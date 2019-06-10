@@ -11,6 +11,7 @@ import pprint
 import helper_functions as hf # import sequential implementation for validation
 import sys
 import imageio
+import time
 from datetime import datetime, timedelta
 os.environ['PYOPENCL_COMPILER_OUTPUT'] = '1'
 
