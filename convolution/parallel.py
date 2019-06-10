@@ -22,6 +22,7 @@ local_size = int(sys.argv[2])
 kernel_version =  int(sys.argv[3])
 iterations_count = int(sys.argv[4])
 kernel_dim  = int(sys.argv[5])
+platform  = int(sys.argv[6])
 
 #===============================================================================================================================
 # SEECTION:  HELPER FUNCTIONS
@@ -33,7 +34,6 @@ def process_image(path_to_image, padding):
     im_src = np.array(rgba_image).astype(dtype=np.float32)
     BLANK = [0,0,0,0]
     im_src2= cv2.copyMakeBorder(im_src,padding,padding,padding,padding,cv2.BORDER_CONSTANT,value=BLANK)
-    #return im_src2.astype(dtype=cl.cltypes.float4)
     return im_src2.astype(dtype=np.float32)
 
 def build_kernel_program(kernel_version):
@@ -276,17 +276,10 @@ srcConstant ='''
 
 # Get platforms, both CPU and GPU
 plat = cl.get_platforms()
-CPU = plat[0].get_devices()
-try:
-    GPU = plat[1].get_devices()
-except IndexError:
-    GPU = "none"
+platform = plat[platform].get_devices()
+ctx = cl.Context(platform)
 
-#Create context for GPU/CPU
-if GPU!= "none":
-    ctx = cl.Context(GPU)
-else:
-    ctx = cl.Context(CPU)
+
 
 # Create queue for each kernel execution
 queue = cl.CommandQueue(ctx)
