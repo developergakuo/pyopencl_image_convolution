@@ -311,6 +311,7 @@ for i in range(iterations_count):
     x = 10
     gpu_start_time = datetime.now()
     while x > 0:
+        print ("here")
         prg.convolute(queue, global_size, local_size ,
          img_g, result_g,d_kernel,np.int32(height_g),np.int32(width_g),np.int32(kernel_dim),
          global_offset=[image_padding,  image_padding])
