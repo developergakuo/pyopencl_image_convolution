@@ -23,6 +23,7 @@ kernel_version =  int(sys.argv[3])
 iterations_count = int(sys.argv[4])
 kernel_dim  = int(sys.argv[5])
 platform  = int(sys.argv[6])
+print ("here args")
 
 #===============================================================================================================================
 # SEECTION:  HELPER FUNCTIONS
@@ -275,6 +276,7 @@ srcConstant ='''
 # SEECTION:  GPU SETUP
 
 # Get platforms, both CPU and GPU
+print ("here plat")
 plat = cl.get_platforms()
 platform = plat[platform].get_devices()
 ctx = cl.Context(platform)
@@ -288,6 +290,7 @@ mf = cl.mem_flags
 
 #Kernel function instantiation
 prg = build_kernel_program(kernel_version)
+print ("here prog built")
 
 #Read in image
 im_dir = os.path.split(os.path.realpath(__file__))[0]
@@ -311,7 +314,7 @@ for i in range(iterations_count):
     x = 10
     gpu_start_time = datetime.now()
     while x > 0:
-        print ("here")
+        print ("here run")
         prg.convolute(queue, global_size, local_size ,
          img_g, result_g,d_kernel,np.int32(height_g),np.int32(width_g),np.int32(kernel_dim),
          global_offset=[image_padding,  image_padding])
