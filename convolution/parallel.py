@@ -278,6 +278,7 @@ srcConstant ='''
 # Get platforms, both CPU and GPU
 print ("here plat")
 plat = cl.get_platforms()
+print ("here got  ctx1")
 platform = plat[platform].get_devices()
 ctx = cl.Context(platform)
 
