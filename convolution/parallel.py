@@ -281,7 +281,7 @@ plat = cl.get_platforms()
 platform = plat[platform].get_devices()
 ctx = cl.Context(platform)
 
-
+print ("here got  ctx")
 
 # Create queue for each kernel execution
 queue = cl.CommandQueue(ctx)
