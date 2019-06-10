@@ -278,6 +278,7 @@ srcConstant ='''
 # Get platforms, both CPU and GPU
 print("here plat")
 plat = cl.get_platforms()
+print ("\nNumber of OpenCL platforms:", len(plat))
 print("here got  ctx1")
 time.sleep(5)
 platform = plat[platform].get_devices()
