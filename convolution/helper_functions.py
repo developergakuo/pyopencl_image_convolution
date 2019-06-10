@@ -58,15 +58,6 @@ def normalize_kernel(kernel, dim):
 
 
 def gaussian_kernel(dim, sigma):
-    """
-    The Guassian blur function is as follows:
-
-                           x² + y²
-    G(x,y) =    1        - -------
-            --------- * e    2σ²
-              2πσ²
-    Finally the kernel is normalized to avoid too dark or too light areas.
-    """
     rows = dim
     cols = dim
     arr = numpy.empty([rows, cols]).astype(numpy.float32)
