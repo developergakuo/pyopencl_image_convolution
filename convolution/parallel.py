@@ -71,13 +71,13 @@ __kernel void convolute(
   int kernelSize)
   {{
 
-const int HALF_FILTER_SIZE = 2;
+const int HALF_FILTER_SIZE = (int)(kernelSize/2);
 //**********************************************************************************
     // local storage section
     
     int i = get_group_id(0);
     int j = get_group_id(1); //Identification of work-item
-    int workGroupSize = 8;
+    int workGroupSize = {local_size};
     int idX = get_local_id(0);
     int idY = get_local_id(1);
     int ii = i*workGroupSize + idX; // == get_global_id(0);
@@ -85,11 +85,10 @@ const int HALF_FILTER_SIZE = 2;
     
     printf("%d",ii);
 
-  __local float4 P[8+8*2][8+8*2]; // local stororage
+  __local float4 P[{local_size}+{half_kernel_size}*2][{local_size}+{half_kernel_size}*2]; // local stororage
    
     //Read pixels into local storage
     P[idX][idY] = input[ii * width + jj];
-
     printf("%f",input[ii * width + jj]);
 
     //read the rest of pixels that will lie outside the group-area but will be covered by the filter 
@@ -134,10 +133,10 @@ const int HALF_FILTER_SIZE = 2;
     float4 sum = (float4) 0.0;
 
         
-    for (int r = -2; r <= 2; r++)
+    for (int r = -HALF_FILTER_SIZE; r <= HALF_FILTER_SIZE; r++)
     {{
       idX+=r;
-      for (int c = -2; c <= 2; c++)
+      for (int c = -HALF_FILTER_SIZE; c <= HALF_FILTER_SIZE; c++)
       {{       
         idY+=c;
         sum += P[idX][idY] * filter[ fIndex ];
@@ -148,7 +147,7 @@ const int HALF_FILTER_SIZE = 2;
     barrier(CLK_LOCAL_MEM_FENCE);
     output[ii * width + jj] = sum;
 }}
-""".format(local_size=local_size, half_kernel_size= half_kernel_size,kernelSize=kernel_dim)
+""".format(local_size=local_size, half_kernel_size= half_kernel_size)
 
 #Vectorized kernel with filter in constant storage
 srcVector4 = '''
@@ -334,4 +333,62 @@ mf = cl.mem_flags
 
 #Kernel function instantiation
 prg = build_kernel_program(kernel_version)
+
+#Read in image
+im_dir = os.path.split(os.path.realpath(__file__))[0]
+image_padding = local_size
+im_src = process_image(image_path,image_padding)
+(width_g,height_g,depth)=im_src.shape
+
+src_buff = cl.image_from_array(ctx, im_src, mode='r')
+#Allocate memory for variables on the device
+
+d_kernel = cl.Buffer(ctx, cl.mem_flags.READ_ONLY | cl.mem_flags.COPY_HOST_PTR, hostbuf=convolution_kernel)
+img_g =  cl.Buffer(ctx, mf.READ_ONLY | mf.COPY_HOST_PTR, hostbuf=im_src)
+result_g = cl.Buffer(ctx, mf.WRITE_ONLY, im_src.nbytes)
+# Call Kernel. Automatically takes care of block/grid distribution
+local_size = (local_size,local_size)
+global_size = (height_g,width_g)
+
+#===============================================================================================================================
+# SEECTION:  RUN PARALLEL BENCHMARKS
+for i in range(iterations_count):
+    x = 10
+    gpu_start_time = datetime.now()
+    while x > 0:
+        prg.convolute(queue, global_size, local_size ,
+         img_g, result_g,d_kernel,np.int32(height_g),np.int32(width_g),np.int32(kernel_dim),
+         global_offset=[image_padding,  image_padding])
+        result = np.empty_like(im_src)
+        cl.enqueue_copy(queue, result, result_g)
+        queue.finish()
+        x -= 1
+    gpu_end_time = datetime.now()
+    print((gpu_end_time - gpu_start_time).total_seconds())
+#===============================================================================================================================
+# SEECTION:  RESHAPE OUTPUT AND VALIDATE SOLUTION
+def reshape_result_and_validate(image_path,result,height_g,width_g, image_padding):
+  tolerance =3.00000000e+02
+  #shape output solution
+  half_height = (int)(height_g/2)
+  result2 = result[:,half_height:height_g,:3]
+  result1 = result[:,:half_height,:3]
+  result = np.concatenate((result2,result1),axis = 1)[image_padding:width_g-image_padding,image_padding*2:height_g,:3]
+  #save image
+  imageio.imwrite('medianFilter-OpenCL1.png',result)
+
+  #validate solution
+  img_arr = hf.image_to_array(image_path)
+  (height_g, width_g, depth) = img_arr.shape
+  img_src = img_arr.reshape((height_g * width_g, 3))
+  expected = hf.apply_kernel_1d(convolution_kernel, kernel_dim, height_g, width_g, img_src)
+  result = result.reshape((height_g * width_g, 3))
+  print("Result equals expected?", np.array_equal(expected, result))
+
+  print("equal within tolerance?",np.allclose(expected, result, rtol=tolerance, atol=tolerance, equal_nan=True))
+
+#reshape_result_and_validate(image_path,result,height_g,width_g, image_padding)
+
+
+
 
