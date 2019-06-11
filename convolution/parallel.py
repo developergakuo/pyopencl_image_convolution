@@ -71,7 +71,7 @@ __kernel void convolute(
   int kernelSize)
   {{
 
-const int HALF_FILTER_SIZE = (int)(kernelSize/2);
+const int HALF_FILTER_SIZE = (int)({kernelSize}/2);
 //**********************************************************************************
     // local storage section
     
@@ -148,7 +148,7 @@ const int HALF_FILTER_SIZE = (int)(kernelSize/2);
     barrier(CLK_LOCAL_MEM_FENCE);
     output[ii * width + jj] = sum;
 }}
-""".format(local_size=local_size, half_kernel_size= half_kernel_size)
+""".format(local_size=local_size, half_kernel_size= half_kernel_size,kernelSize=kernel_dim)
 
 #Vectorized kernel with filter in constant storage
 srcVector4 = '''
@@ -197,7 +197,7 @@ srcGlobal ='''
   int y = get_global_id(1) - {local_size} ;
   int rowOffset =x * width * 4;
   int my = 4 * y + rowOffset;
-  int HALF_FILTER_SIZE = (int)({kernelSize}/2);
+  int HALF_FILTER_SIZE = (int)(kernelSize/2);
 
   int fIndex = 0;
   float sumR = 0.0;
@@ -226,7 +226,7 @@ srcGlobal ='''
   output[ my + 3 ] = sumA;
   
 }}
-'''.format(local_size=local_size,kernelSize=kernel_dim)
+'''.format(local_size=local_size)
 
 #kernel with filter in constant memory
 srcConstant ='''
@@ -334,8 +334,4 @@ mf = cl.mem_flags
 
 #Kernel function instantiation
 prg = build_kernel_program(kernel_version)
-
-
-
-
 
