@@ -89,7 +89,7 @@ const int HALF_FILTER_SIZE = (int)(kernelSize/2);
    
     //Read pixels into local storage
     P[idX][idY] = input[ii * width + jj];
-    
+
     printf("%f",input[ii * width + jj]);
 
     //read the rest of pixels that will lie outside the group-area but will be covered by the filter 
@@ -197,7 +197,7 @@ srcGlobal ='''
   int y = get_global_id(1) - {local_size} ;
   int rowOffset =x * width * 4;
   int my = 4 * y + rowOffset;
-  int HALF_FILTER_SIZE = (int)(kernelSize/2);
+  int HALF_FILTER_SIZE = (int)({kernelSize}}/2);
 
   int fIndex = 0;
   float sumR = 0.0;
@@ -226,7 +226,7 @@ srcGlobal ='''
   output[ my + 3 ] = sumA;
   
 }}
-'''.format(local_size=local_size)
+'''.format(local_size=local_size,kernelSize=kernel_dim)
 
 #kernel with filter in constant memory
 srcConstant ='''
