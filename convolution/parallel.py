@@ -74,7 +74,7 @@ __kernel void convolute(
 const int HALF_FILTER_SIZE = (int)(kernelSize/2);
 //**********************************************************************************
     // local storage section
-
+    
     int i = get_group_id(0);
     int j = get_group_id(1); //Identification of work-item
     int workGroupSize = {local_size};
@@ -83,11 +83,14 @@ const int HALF_FILTER_SIZE = (int)(kernelSize/2);
     int ii = i*workGroupSize + idX; // == get_global_id(0);
     int jj = j*workGroupSize + idY; // == get_global_id(1);
     
+    printf("%d",ii);
+
   __local float4 P[{local_size}+{half_kernel_size}*2][{local_size}+{half_kernel_size}*2]; // local stororage
    
     //Read pixels into local storage
     P[idX][idY] = input[ii * width + jj];
     
+    printf("%f",input[ii * width + jj]);
 
     //read the rest of pixels that will lie outside the group-area but will be covered by the filter 
     if (idX < HALF_FILTER_SIZE ){{
