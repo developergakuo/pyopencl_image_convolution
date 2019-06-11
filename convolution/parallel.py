@@ -71,13 +71,13 @@ __kernel void convolute(
   int kernelSize)
   {{
 
-const int HALF_FILTER_SIZE = (int)({kernelSize}/2);
+const int HALF_FILTER_SIZE = 2;
 //**********************************************************************************
     // local storage section
     
     int i = get_group_id(0);
     int j = get_group_id(1); //Identification of work-item
-    int workGroupSize = {local_size};
+    int workGroupSize = 8;
     int idX = get_local_id(0);
     int idY = get_local_id(1);
     int ii = i*workGroupSize + idX; // == get_global_id(0);
@@ -85,7 +85,7 @@ const int HALF_FILTER_SIZE = (int)({kernelSize}/2);
     
     printf("%d",ii);
 
-  __local float4 P[{local_size}+{half_kernel_size}*2][{local_size}+{half_kernel_size}*2]; // local stororage
+  __local float4 P[8+8*2][8+8*2]; // local stororage
    
     //Read pixels into local storage
     P[idX][idY] = input[ii * width + jj];
@@ -134,10 +134,10 @@ const int HALF_FILTER_SIZE = (int)({kernelSize}/2);
     float4 sum = (float4) 0.0;
 
         
-    for (int r = -HALF_FILTER_SIZE; r <= HALF_FILTER_SIZE; r++)
+    for (int r = -2; r <= 2; r++)
     {{
       idX+=r;
-      for (int c = -HALF_FILTER_SIZE; c <= HALF_FILTER_SIZE; c++)
+      for (int c = -2; c <= 2; c++)
       {{       
         idY+=c;
         sum += P[idX][idY] * filter[ fIndex ];
