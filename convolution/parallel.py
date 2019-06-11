@@ -80,10 +80,10 @@ const int HALF_FILTER_SIZE = (int)(kernelSize/2);
     int workGroupSize = {local_size};
     int idX = get_local_id(0);
     int idY = get_local_id(1);
-    int ii = i*workGroupSize + idX; // == get_global_id(0);
-    int jj = j*workGroupSize + idY; // == get_global_id(1);
+    int ii = (i*workGroupSize + idX)-{local_size}; // == get_global_id(0);
+    int jj = (j*workGroupSize + idY)-{local_size}; // == get_global_id(1);
     
-    printf("%d",ii);
+    printf("(%d-%d)",ii,get_global_id(0));
 
   __local float4 P[{local_size}+{half_kernel_size}*2][{local_size}+{half_kernel_size}*2]; // local stororage
    
