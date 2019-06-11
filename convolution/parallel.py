@@ -24,7 +24,6 @@ kernel_version =  int(sys.argv[3])
 iterations_count = int(sys.argv[4])
 kernel_dim  = int(sys.argv[5])
 platform  = int(sys.argv[6])
-print ("here args")
 
 #===============================================================================================================================
 # SEECTION:  HELPER FUNCTIONS
@@ -276,16 +275,56 @@ srcConstant ='''
 #===============================================================================================================================
 # SEECTION:  GPU SETUP
 
-# Get platforms, both CPU and GPU
-print("here plat")
-plat = cl.get_platforms()
-print ("\nNumber of OpenCL platforms:", len(plat))
-print("here got  ctx1")
-time.sleep(5)
-platform = plat[platform].get_devices()
-ctx = cl.Context(platform)
+platforms = cl.get_platforms()
 
-print ("here got  ctx")
+print ("\nNumber of OpenCL platforms:", len(platforms))
+
+print ("\n-------------------------")
+
+# Investigate each platform
+i =0 
+for p in platforms:
+    # Print out some information about the platforms
+    print("plat", i)
+    print ("Platform:", p.name)
+    print ("Vendor:", p.vendor)
+    print ("Version:", p.version)
+    
+    # Discover all devices
+    devices = p.get_devices()
+    print ("Number of devices:", len(devices))
+
+    # Investigate each device
+    i+=1
+    j=0
+    for d in devices:
+        print( "\t-------------------------")
+        # Print out some information about the devices
+        print("device", j)
+        j+=1
+        print ("\t\tName:", d.name)
+        print("\t\tVersion:", d.opencl_c_version)
+        print ("\t\tMax. Compute Units:", d.max_compute_units)
+        print ("\t\tLocal Memory Size:", d.local_mem_size / 1024, "KB")
+        print ("\t\tGlobal Memory Size:", d.global_mem_size / (1024 * 1024), "MB")
+        print ("\t\tMax Alloc Size:", d.max_mem_alloc_size / (1024 * 1024), "MB")
+        print ("\t\tMax Work-group Total Size:", d.max_work_group_size)
+        print ("\t\tCache Size:", d.global_mem_cacheline_size)
+
+        # Find the maximum dimensions of the work-groups
+        dim = d.max_work_item_sizes
+        print ("\t\tMax Work-group Dims:(", dim[0], " ".join(map(str, dim[1:])), ")")
+
+        print ("\t-------------------------")
+
+    print ("\n-------------------------")
+
+# Get platforms, both CPU and GPU
+platforms = cl.get_platforms()
+p = platforms[platform]
+print ("\t\tName2:", p.name)
+ctx = cl.Context(p.get_devices())
+
 
 # Create queue for each kernel execution
 queue = cl.CommandQueue(ctx)
@@ -294,7 +333,6 @@ mf = cl.mem_flags
 
 #Kernel function instantiation
 prg = build_kernel_program(kernel_version)
-print ("here prog built")
 
 #Read in image
 im_dir = os.path.split(os.path.realpath(__file__))[0]
@@ -318,11 +356,9 @@ for i in range(iterations_count):
     x = 10
     gpu_start_time = datetime.now()
     while x > 0:
-        print ("here run")
         prg.convolute(queue, global_size, local_size ,
          img_g, result_g,d_kernel,np.int32(height_g),np.int32(width_g),np.int32(kernel_dim),
          global_offset=[image_padding,  image_padding])
-
         result = np.empty_like(im_src)
         cl.enqueue_copy(queue, result, result_g)
         queue.finish()

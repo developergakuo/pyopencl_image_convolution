@@ -20,20 +20,26 @@ print ("\nNumber of OpenCL platforms:", len(platforms))
 print ("\n-------------------------")
 
 # Investigate each platform
+i =0 
 for p in platforms:
     # Print out some information about the platforms
+    print("plat", i)
     print ("Platform:", p.name)
     print ("Vendor:", p.vendor)
     print ("Version:", p.version)
-
+    
     # Discover all devices
     devices = p.get_devices()
     print ("Number of devices:", len(devices))
 
     # Investigate each device
+    i+=1
+    j=0
     for d in devices:
         print( "\t-------------------------")
         # Print out some information about the devices
+        print("device", j)
+        j+=1
         print ("\t\tName:", d.name)
         print("\t\tVersion:", d.opencl_c_version)
         print ("\t\tMax. Compute Units:", d.max_compute_units)
