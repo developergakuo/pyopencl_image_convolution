@@ -197,7 +197,7 @@ srcGlobal ='''
   int y = get_global_id(1) - {local_size} ;
   int rowOffset =x * width * 4;
   int my = 4 * y + rowOffset;
-  int HALF_FILTER_SIZE = (int)({kernelSize}}/2);
+  int HALF_FILTER_SIZE = (int)({kernelSize}/2);
 
   int fIndex = 0;
   float sumR = 0.0;
