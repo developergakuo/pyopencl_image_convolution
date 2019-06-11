@@ -339,7 +339,7 @@ im_dir = os.path.split(os.path.realpath(__file__))[0]
 image_padding = local_size
 im_src = process_image(image_path,image_padding)
 (width_g,height_g,depth)=im_src.shape
-
+print(im_src.shape)
 src_buff = cl.image_from_array(ctx, im_src, mode='r')
 #Allocate memory for variables on the device
 
