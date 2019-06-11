@@ -1,4 +1,4 @@
-import pyopencl.array as cl_array
+
 import numpy as np
 from scipy.misc import imread, imsave
 import math
@@ -6,7 +6,6 @@ import os
 import PIL.Image
 import cv2
 import pyopencl as cl
-import pyopencl.cltypes
 import pprint
 import helper_functions as hf # import sequential implementation for validation
 import sys
@@ -319,15 +318,5 @@ for p in platforms:
 
     print ("\n-------------------------")
 
-# Get platforms, both CPU and GPU
-platforms = cl.get_platforms()
-p = platforms[platform]
-print ("\t\tName2:", p.name)
-ctx = cl.Context(p.get_devices())
 
-
-# Create queue for each kernel execution
-queue = cl.CommandQueue(ctx)
-
-mf = cl.mem_flags
 
