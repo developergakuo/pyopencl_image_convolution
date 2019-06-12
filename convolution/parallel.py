@@ -80,45 +80,47 @@ const int HALF_FILTER_SIZE = (int)(kernelSize/2);
     int workGroupSize = {local_size};
     int idX = get_local_id(0);
     int idY = get_local_id(1);
-    int ii = (i*workGroupSize + idX)-{local_size}; // == get_global_id(0);
-    int jj = (j*workGroupSize + idY)-{local_size}; // == get_global_id(1);
+    int ii = (i*workGroupSize + idX); // == get_global_id(0);
+    int jj = (j*workGroupSize + idY); // == get_global_id(1);
     
-    printf("(%d-%d)",ii,get_global_id(0));
+    //printf("(%d)",HALF_FILTER_SIZE);
 
   __local float4 P[{local_size}+{half_kernel_size}*2][{local_size}+{half_kernel_size}*2]; // local stororage
    
     //Read pixels into local storage
-    P[idX][idY] = input[ii * width + jj];
-    printf("%f",input[ii * width + jj]);
+    //P[idX][idY] = input[ii * width + jj];
+     //printf("%f",input[ii * width + jj]);
 
     //read the rest of pixels that will lie outside the group-area but will be covered by the filter 
     if (idX < HALF_FILTER_SIZE ){{
        // 1. left side of the local area
-       ii = ii -  HALF_FILTER_SIZE;
-       idX =  idX - HALF_FILTER_SIZE;
-
-       P[idX][idY] = input[ ii * width + jj];
+       int X = ii -  HALF_FILTER_SIZE;
+       int x =  idX - HALF_FILTER_SIZE;
+       //printf(" -x-> (%d-%d)",ii,X);
+       P[x][idY] = input[ X * width + jj];
 
       // 2. right side of the local area
-       ii = ii +  workGroupSize; 
-       idX =  idX + workGroupSize;
-       P[idX][idY] = input[ ii * width + jj];
+       int X2 = ii +  workGroupSize; 
+       int x2 =  idX + workGroupSize;
+       //printf(" +x2->(%d-%d)",ii,X2);
+       P[x2][idY] = input[ X2 * width + jj];
 
     }}
       
      if (idY < HALF_FILTER_SIZE ){{
-        
+    
        // 1. top side of the local area
-       jj = jj -  HALF_FILTER_SIZE; 
-       idY =  idY - HALF_FILTER_SIZE;
-
-       P[idX][idY] = input[ ii * width + jj];
+        int Y = jj -  HALF_FILTER_SIZE; 
+       int y =  idY - HALF_FILTER_SIZE;
+       //print(" -y->(%d-%d)",jj,Y);
+       P[idX][y] = input[ ii * width + Y];
        
        // 2. bottom side of the local area
 
-       jj = jj +  workGroupSize; 
-       idY =  idY + workGroupSize;
-       P[idX][idY] = input[ii * width + jj];
+       int Y2= jj +  workGroupSize; 
+       int y2 =  idY + workGroupSize;
+       //printf(" +y2->(%d-%d)",jj,Y2);
+       P[idX][y2] = input[ii * width + Y2];
 
        
 
@@ -139,13 +141,14 @@ const int HALF_FILTER_SIZE = (int)(kernelSize/2);
       for (int c = -HALF_FILTER_SIZE; c <= HALF_FILTER_SIZE; c++)
       {{       
         idY+=c;
-        sum += P[idX][idY] * filter[ fIndex ];
+        //sum += P[idX][idY] * filter[ fIndex ];
         fIndex++;
       }}
     }}
-
+    
     barrier(CLK_LOCAL_MEM_FENCE);
     output[ii * width + jj] = sum;
+    barrier(CLK_LOCAL_MEM_FENCE);
 }}
 """.format(local_size=local_size, half_kernel_size= half_kernel_size)
 
